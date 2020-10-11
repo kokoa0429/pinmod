@@ -20,16 +20,16 @@ import java.nio.FloatBuffer;
 import javax.vecmath.Vector3d;
 
 public class PinRenderer {
-/*
-    private static FloatBuffer viewport = GLAllocation.createDirectFloatBuffer(16);
-    private static FloatBuffer modelview = GLAllocation.createDirectFloatBuffer(16);
-    private static FloatBuffer projection = GLAllocation.createDirectFloatBuffer(16);
-    private static FloatBuffer objectCoords = GLAllocation.createDirectFloatBuffer(16);
-
-
- */
+    /*
+        private static FloatBuffer viewport = GLAllocation.createDirectFloatBuffer(16);
+        private static FloatBuffer modelview = GLAllocation.createDirectFloatBuffer(16);
+        private static FloatBuffer projection = GLAllocation.createDirectFloatBuffer(16);
+        private static FloatBuffer objectCoords = GLAllocation.createDirectFloatBuffer(16);
+     */
+    /*
     float ny = 0f;
     Vec3d vtmp = new Vec3d(0, 0, 0);
+     */
 
     @SubscribeEvent
     public void renderPin(RenderWorldLastEvent event) {
@@ -40,41 +40,20 @@ public class PinRenderer {
     }
 
     public void render(PinData pin, float partialTicks) {
-        if (Minecraft.getInstance().world.getWorldType().getId() != pin.dimId)return;
+        if (Minecraft.getInstance().world.getWorldType().getId() != pin.dimId) return;
 
         PlayerEntity p = Minecraft.getInstance().player;
         double pinLength = Math.sqrt((p.getPosX() - pin.x) * (p.getPosY() - pin.x) + (p.getPosY() - pin.y) * (p.getPosY() - pin.y) + (p.getPosZ() - pin.z) * (p.getPosZ() - pin.z));
-
-        //GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelview);
-        //GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projection);
-        //GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
-
-        /*
-        GlStateManager.get
-        glfw (GL11.GL_MODELVIEW_MATRIX, modelview);
-        GlStateManager.getFloat(GL11.GL_PROJECTION_MATRIX, projection);
-        GlStateManager.glGetInteger(GL11.GL_VIEWPORT, viewport);
-
-
-         */
 
         double dx = p.prevPosX + (p.getPosX() - p.prevPosX) * partialTicks;
         double dy = p.prevPosY + (p.getPosY() - p.prevPosY) * partialTicks - p.getYOffset();
         double dz = p.prevPosZ + (p.getPosZ() - p.prevPosZ) * partialTicks;
 
-        /*
-        GLU.gluProject(
-                (float) (pin.x - dx),
-                (float) (pin.y - dy),
-                (float) (pin.z - dz),
-                modelview, projection, viewport, objectCoords);
-
-         */
         //pin Vector
         Vec3d vec = new Vec3d((float) (pin.x - dx), (float) (pin.y - dy), (float) (pin.z - dz)).normalize();
         //player Vector
         Vec3d pvec = new Vec3d(Minecraft.getInstance().player.getLookVec().x, Minecraft.getInstance().player.getLookVec().y, Minecraft.getInstance().player.getLookVec().z);
-
+        // System.out.println(pvec);
 
         Vec3d vecd = new Vec3d((float) (pin.x - dx), (float) (pin.y - dy), (float) (pin.z - dz));
         vecd.normalize();
@@ -104,14 +83,13 @@ public class PinRenderer {
 
         Tessellator tess = Tessellator.getInstance();
         //GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-        GL11.glPushMatrix();
+        //GL11.glPushMatrix();
 
         Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("pinmod", "textures/pin_icon_1.png"));
 
 
-
         GL11.glColor3f(254f / 255, 182f / 255, 36f / 255);
-        GL11.glTranslated(pin.x - p.getPosX(), pin.y - p.getPosY() + 1.6d, pin.z - p.getPosZ());
+        //GlStateManager.translated(pin.x - p.getPosX(), pin.y - p.getPosY() + 1.6d, pin.z - p.getPosZ());
 
         //GL11.glDisable(GL11.GL_LIGHTING);
         GlStateManager.disableLighting();
@@ -126,9 +104,18 @@ public class PinRenderer {
         float f7 = 1;
         float f4 = 1;
 
+        Quaternion q = new ActiveRenderInfo().getRotation();
+
         BufferBuilder renderer = tess.getBuffer();
 
-        renderer.begin(GL11.GL_QUADS,DefaultVertexFormats.POSITION_TEX);
+
+        renderer.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION);
+        renderer.pos(0,0,0).endVertex();
+        renderer.pos(0,1,0).endVertex();
+        renderer.pos(1,1,1).endVertex();
+        tess.draw();
+
+        renderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
         double scale = bl > 0.995 && pinLength > 30 ? 2 * Math.sqrt(pinLength) : 1 * Math.sqrt(Math.sqrt(pinLength * 3));
         double var12 = 0.3d;
         renderer.pos((double) (0 - f3 * var12 - f6 * var12) * scale, (double) (0 - f4 * var12) * scale, (double) (0 - f5 * var12 - f7 * var12) * scale).tex((float) 1, (float) 1).endVertex();
@@ -142,20 +129,23 @@ public class PinRenderer {
         //GL11.glEnable(GL11.GL_DEPTH_TEST);
         GlStateManager.enableDepthTest();
         //GL11.glRotated(Math.atan2(f3, f5) / Math.PI * 180d + 90d, 0, 1, 0);
-        GL11.glRotatef((float) Math.atan2(f3, f5) /(float) Math.PI * 180f + 90f, 0, 1, 0);
+        GL11.glRotatef((float) Math.atan2(f3, f5) / (float) Math.PI * 180f + 90f, 0, 1, 0);
         //GL11.glDisable(GL11.GL_TEXTURE_2D);
         GlStateManager.disableTexture();
+        /*
         renderer.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION);
         renderer.pos(0, -1.6d, 0).endVertex();
         renderer.pos(-0.05d, -0.35d, 0).endVertex();
         renderer.pos(0.05d, -0.35d, 0).endVertex();
         tess.draw();
 
+         */
+
         FontRenderer fr = Minecraft.getInstance().fontRenderer;
         String str = pin.player + "(" + (int) pinLength + "m)";
         float s = 0.016666668F * 0.6666667F * 2;
         //GL11.glTranslated(0, 0.5, 0);
-        GlStateManager.translated(0f,0.5f,0f);
+        GlStateManager.translated(0f, 0.5f, 0f);
 
         GlStateManager.scaled(s, -s, s);
 
@@ -179,7 +169,7 @@ public class PinRenderer {
         fr.drawString(str, -fr.getStringWidth(str) / 2, 0 * 10 - 1 * 5, 0xFFFFFF);
 
 
-        GL11.glPopMatrix();
+        //GL11.glPopMatrix();
         //GL11.glPopAttrib();
     }
 
@@ -187,13 +177,14 @@ public class PinRenderer {
     public void renderGui(RenderGameOverlayEvent.Post event) {
         float partialTicks = event.getPartialTicks();
         for (PinData pin : PinManager.pins()) {
-            if(Minecraft.getInstance().player.world.getWorldType().getId() != pin.dimId) continue;
+            assert Minecraft.getInstance().player != null;
+            if (Minecraft.getInstance().player.world.getWorldType().getId() != pin.dimId) continue;
 
             double dy = (pin.dy - Minecraft.getInstance().getMainWindow().getHeight() / 2f);
             Tessellator tess = Tessellator.getInstance();
 
             //GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-            GL11.glPushMatrix();
+            //GL11.glPushMatrix();
             Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("pinmod", "textures/pin_icon_1.png"));
             BufferBuilder renderer = tess.getBuffer();
             renderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
@@ -210,7 +201,7 @@ public class PinRenderer {
 
             double iconsize = 10d;
 
-            GlStateManager.color4f(254f / 255, 182f / 255, 36f / 255,1f);
+            GlStateManager.color4f(254f / 255, 182f / 255, 36f / 255, 1f);
             if (scale2d > 0 && scale2d < 2 && pin.dx > 0) {
                 guiX = event.getWindow().getScaledWidth() - iconsize;
                 guiY = iconsize;
@@ -275,7 +266,7 @@ public class PinRenderer {
             if (event.getWindow().getScaledWidth() - guiX > fr.getStringWidth(str)) {
                 fr.drawString(str, (int) guiX + 10, (int) (guiY - iconsize / 2 + 2), 0xFFFFFF);
             } else {
-                fr.drawString(str, (int)(guiX - iconsize - fr.getStringWidth(str)), (int) (guiY - iconsize / 2 + 2), 0xFFFFFF);
+                fr.drawString(str, (int) (guiX - iconsize - fr.getStringWidth(str)), (int) (guiY - iconsize / 2 + 2), 0xFFFFFF);
             }
 
             /*
@@ -304,7 +295,7 @@ public class PinRenderer {
              */
             GlStateManager.depthMask(true);
             //GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.popMatrix();
+            //GlStateManager.popMatrix();
             //GlStateManager.popAttributes();
         }
     }
